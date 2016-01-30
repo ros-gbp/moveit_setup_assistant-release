@@ -1,3 +1,24 @@
+## moveit_setup_assistant (indigo) - 0.7.0-0
+
+The packages in the `moveit_setup_assistant` repository were released into the `indigo` distro by running `/usr/bin/bloom-release moveit_setup_assistant --track indigo --rosdistro indigo` on `Sat, 30 Jan 2016 21:14:41 -0000`
+
+The `moveit_setup_assistant` package was released.
+
+Version of package(s) in repository `moveit_setup_assistant`:
+- upstream repository: https://github.com/ros-planning/moveit_setup_assistant.git
+- release repository: https://github.com/ros-gbp/moveit_setup_assistant-release.git
+- rosdistro version: `0.6.0-0`
+- old version: `0.6.0-0`
+- new version: `0.7.0-0`
+
+Versions of tools used:
+- bloom version: `0.5.20`
+- catkin_pkg version: `0.2.10`
+- rosdep version: `0.11.4`
+- rosdistro version: `0.4.2`
+- vcstools version: `0.1.38`
+
+
 ## moveit_setup_assistant (indigo) - 0.6.0-0
 
 The packages in the `moveit_setup_assistant` repository were released into the `indigo` distro by running `/usr/bin/bloom-release moveit_setup_assistant -t indigo -r indigo --edit` on `Tue, 02 Dec 2014 01:43:39 -0000`
