@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2015,Fraunhofer IPA
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of Fraunhofer IPA nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,71 +32,27 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman */
+/* Author: Mathias Lüdtke */
 
-#include "widgets/setup_assistant_widget.h"
-#include <ros/ros.h>
-#include <QApplication>
-#include <QMessageBox>
-#include <boost/program_options.hpp>
-#include <signal.h>
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_FILE_LOADER_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_FILE_LOADER_
 
-static void siginthandler(int param)
+#include <string>
+#include <vector>
+
+namespace moveit_setup_assistant
 {
-  QApplication::quit();
+/// detemine if given path points to a xacro file
+bool isXacroFile(const std::string& path);
+
+/// load file from given path into buffer
+bool loadFileToString(std::string& buffer, const std::string& path);
+
+/// run xacro with the given args on the file, return result in buffer
+bool loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args);
+
+/// helper that branches between loadFileToString() and loadXacroFileToString() based on result of isXacroFile()
+bool loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args);
 }
 
-int main(int argc, char **argv)
-{
-  // Parse parameters
-  namespace po = boost::program_options;
-
-  // Declare the supported options
-  po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help", "Show help message")
-    ("debug", "Run in debug/test mode")
-    ("urdf_path", po::value<std::string>(), "Optional, relative path to URDF in URDF package")
-    ("config_pkg", po::value<std::string>(), "Optional, pass in existing config package to load");
-
-  // Process options
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
-
-  if (vm.count("help"))
-  {
-    std::cout << desc << std::endl;
-    return 1;
-  }
-
-  // Start ROS Node
-  ros::init(argc, argv, "moveit_setup_assistant", ros::init_options::NoSigintHandler);
-
-  // ROS Spin
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-
-  ros::NodeHandle nh;
-
-  // Create Qt Application
-  QApplication qtApp(argc, argv);
-
-  // Load Qt Widget
-  moveit_setup_assistant::SetupAssistantWidget saw( NULL, vm );
-  saw.setMinimumWidth(980);
-  saw.setMinimumHeight(550);
-  //  saw.setWindowState( Qt::WindowMaximized );
-
-  saw.show();
-
-  signal(SIGINT, siginthandler);
-
-  // Wait here until Qt App is finished
-  const int result = qtApp.exec();
-
-  // Shutdown ROS
-  ros::shutdown();
-
-  return result;
-}
+#endif
