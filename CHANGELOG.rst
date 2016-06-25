@@ -2,7 +2,7 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.7.1 (2016-06-24)
+0.7.2 (2016-06-24)
 ------------------
 * [sys] Qt adjustment. 
   * relax Qt-version requirement.  Minor Qt version updates are ABI-compatible with each other:  https://wiki.qt.io/Qt-Version-Compatibility
