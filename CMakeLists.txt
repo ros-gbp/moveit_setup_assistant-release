@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 project(moveit_setup_assistant)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -23,23 +23,28 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 # Qt Stuff
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
+if(rviz_QT_VERSION VERSION_LESS "5")
+  find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+  include(${QT_USE_FILE})
+else()
+  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+  set(QT_LIBRARIES Qt5::Widgets)
+endif()
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
-include_directories(${QT_INCLUDE_DIR})
-include_directories(${CMAKE_BINARY_DIR})
 
 # Support new yaml-cpp API.
 find_package(PkgConfig)
 pkg_check_modules(NEW_YAMLCPP yaml-cpp>=0.5)
 if(NEW_YAMLCPP_FOUND)
-add_definitions(-DHAVE_NEW_YAMLCPP)
+  add_definitions(-DHAVE_NEW_YAMLCPP)
 endif(NEW_YAMLCPP_FOUND)
 
 find_library(YAML yaml-cpp REQUIRED)
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
-set( headers
+set(HEADERS
   src/widgets/navigation_widget.h
   src/widgets/header_widget.h
   src/widgets/setup_assistant_widget.h
@@ -57,9 +62,6 @@ set( headers
   src/widgets/setup_screen_widget.h
 )
 
-# Convert the Qt Signals and Slots for QWidget events
-qt4_wrap_cpp(moc_sources ${headers})
-
 # Tools Library
 add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
@@ -67,7 +69,12 @@ add_library(${PROJECT_NAME}_tools
   src/tools/moveit_config_data.cpp
   src/tools/srdf_writer.cpp
 )
-target_link_libraries(${PROJECT_NAME}_tools ${YAML} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_tools
+  ${YAML}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${QT_LIBRARIES}
+)
 
 # Main Widgets Library - all screens (navigation options)
 add_library(${PROJECT_NAME}_widgets
@@ -86,13 +93,13 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
-  ${moc_sources}
+  ${HEADERS}
 )
-target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
-# Source files for the exectuable
-set( sources
-  src/setup_assistant_main.cpp
+target_link_libraries(${PROJECT_NAME}_widgets
+  ${PROJECT_NAME}_tools
+  ${QT_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 catkin_package(
@@ -103,16 +110,17 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_visualization
-    )
+)
 
-# Link libraries
-add_executable(${PROJECT_NAME} ${sources} ${headers})
+# executables
+add_executable(${PROJECT_NAME} src/setup_assistant_main.cpp)
 target_link_libraries(${PROJECT_NAME}
   ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
   ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx)
 
 add_executable(${PROJECT_NAME}_updater src/collisions_updater.cpp )
-target_link_libraries(${PROJECT_NAME}_updater ${PROJECT_NAME}_tools ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_updater
+  ${PROJECT_NAME}_tools ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 set_target_properties(${PROJECT_NAME}_updater
                       PROPERTIES OUTPUT_NAME collisions_updater
                       PREFIX "")
